@@ -49,7 +49,7 @@ class Diquark:
         return ((phi + 2.0 * aphi * fer1) * fer1 + fer1 ** 3) / u1
 
     def fermi2(self, en, mu, phi, aphi):
-#        print(self.T, en, mu, phi, aphi)
+        #        print(self.T, en, mu, phi, aphi)
         fer2 = math.exp(-(en + mu) / self.T)
         u2 = 1.0 + 3.0 * (aphi + phi * fer2) * fer2 + fer2 ** 3
 
@@ -61,22 +61,25 @@ class Diquark:
         # ia_d = self.integral_A(self.mq_d, self.mu_d)
         # ia_s = self.integral_A(self.mq_s, self.mu_s)
         # ia_s_min = self.integral_A(self.mq_d, -self.mu_d)
-        ia_d_min = self.integral_A(self.mq_s, -self.mu_s)
+        ia_d_min = self.integral_A(self.mq_d, -self.mu_d)
+
+        #        print(ia_u, ia_d_min)
 
         Gdiq_f = self.Gdiq
 
         # print(self.mq_u, self.mu_u, self.mq_d, -self.mu_d)
-
 
         B0_ud = self.integral_Reb(x[0], self.mq_u, self.mu_u, self.mq_d, -self.mu_d)
         ImB0_ud = self.integral_ImB(x[0], self.mq_u, self.mu_u, self.mq_d, -self.mu_d)
 
         modul_ud = B0_ud ** 2 + ImB0_ud ** 2
 
-        print(B0_ud, ImB0_ud)
-
         fmass_ud = ((self.mq_u - self.mq_d) ** 2 - (x[0] + self.mu_u + self.mu_d) ** 2
                     + x[1] ** 2 / 4.0)
+
+        print(modul_ud, fmass_ud)
+
+        #        print(modul_ud, fmass_ud)
 
         f[0] = 2.0 * Gdiq_f / self.pi ** 2 * (x[0] + self.mu_u + self.mu_d) * x[1]
 
@@ -85,6 +88,8 @@ class Diquark:
         f[1] = 2.0 * Gdiq_f / self.pi ** 2 * fmass_ud
 
         + (1.0 + 2.0 * Gdiq_f / self.pi ** 2 * (ia_u + ia_d_min)) * B0_ud / modul_ud
+
+        print(f[0], f[1])
 
         return f
 
@@ -113,7 +118,7 @@ class Diquark:
         self.mu_q2 = mmu_q2
         self.lam = mdiq - self.mu_q2 + self.mu_q1
 
-#
+        #
 
         self.E01 = (self.lam ** 2 + self.mq1 ** 2 - self.mq2 ** 2) / 2.0 / self.lam
         self.E02 = (self.lam ** 2 - self.mq1 ** 2 + self.mq2 ** 2) / 2.0 / self.lam
@@ -148,7 +153,7 @@ class Diquark:
             Im_B4 = 4.0 * self.pi * math.sqrt(self.E02 ** 2 - self.mq2 ** 2) * (
                     1.0 - self.fermi2(self.E02, self.mu_q2, self.phi, self.aphi)) * Theta / 2.0 / self.lam
 
-  #      print(mdiq, Im_B1, Im_B2, Im_B3, Im_B4)
+        #        print(Im_B1, Im_B2, Im_B3, Im_B4)
         return - Im_B1 - Im_B2 + Im_B3 + Im_B4
 
     def integral_Reb(self, mdiq, mq1, mu_q1, mq2, mu_q2):
@@ -167,7 +172,7 @@ class Diquark:
         Re_B3 = self.int_ReB3()
         Re_B4 = self.int_ReB4()
 
-#        print(Re_B1, Re_B2, Re_B3, Re_B4)
+        #       print(Re_B1, Re_B2, Re_B3, Re_B4)
         return - Re_B1 - Re_B2 + Re_B3 + Re_B4
 
     def int_ReB1(self):
@@ -199,7 +204,7 @@ class Diquark:
             p = x ** 2 - self.mq1 ** 2
             if p < 0.0:
                 p = 0.0
- #           print(self.lam)
+            #           print(self.lam)
 
             return math.sqrt(p) * (1.0 - f1) / 2.0 / self.lam / (x + self.E01)
 
@@ -235,16 +240,20 @@ class Diquark:
     def int_ReB4(self):
         a = self.mq2
         b = math.sqrt(self.L ** 2 + self.mq2 ** 2)
+
+        #       print(a, b)
+
         def fb4(x):
 
             f1 = self.fermi2(x, self.mu_q2, self.phi, self.aphi)
-#            print(f1, self.mq2)
+            #            print(f1, self.mq2)
             p = x ** 2 - self.mq2 ** 2
-
+            #            print(x)
             if p < 0.0:
                 p = 0.0
-            return math.sqrt(p) * (1.0 - f1) / 2.0 / self.lam
-        print(self.E02)
+            return math.sqrt(p) * (1.0 - f1) / 2.0 / self.lam / (x - self.E02)
+
+        # print(self.E02)
         if self.E02 < 0.0:
             return 4.0 * integrate.quad(fb4, a, b)[0]
         else:
@@ -256,8 +265,8 @@ class Diquark:
 
 
 x = np.zeros(2)
-x[0] = 1.1
-x[1] = 0.000001
+x[0] = 0.56
+x[1] = 0.00001
 
 mueq_u_mass_phi = np.loadtxt('./04mueq_u_mass_phi_mu00.txt')
 mueq_dmass = np.loadtxt('./04mueq_dmass_mu00.txt')
@@ -287,5 +296,4 @@ for i in range(350):
                   )
     xguess = x.copy()
     x = scipy.optimize.root(diq.fcn, xguess)['x']
-    print(diq.T, x[0], x[1])
-
+    print('aaa')
